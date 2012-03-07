@@ -7,4 +7,5 @@ project :
 			<library>/boost//filesystem/<link>shared
 		;
 
+explicit sequence ;
 lib sequence : [ glob *.cpp ] ;
