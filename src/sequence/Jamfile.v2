@@ -1,10 +1,10 @@
 project :	
 			requirements
 			<include>..
-			<library>/boost//filesystem
+			<library>/boost//filesystem/<link>shared
 		:	usage-requirements
 			<include>..
-			<library>/boost//filesystem
+			<library>/boost//filesystem/<link>shared
 		;
 
 lib sequence : [ glob *.cpp ] ;
