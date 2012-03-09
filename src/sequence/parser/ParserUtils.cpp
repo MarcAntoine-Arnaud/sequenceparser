@@ -81,6 +81,8 @@ static inline void overwrite(unsigned int value, string &inString, const Locatio
 
 vector<Range> LocationValueSet::getConsecutiveRanges(LocationValueSet::value_type &step) const {
     assert(!isConstant());
+    if(empty())
+        return vector<Range>();
     typedef vector<value_type> V;
     typedef V::const_iterator VItr;
     V derivative(size());
