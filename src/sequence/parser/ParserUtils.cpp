@@ -80,22 +80,25 @@ static inline void overwrite(unsigned int value, string &inString, const Locatio
 }
 
 vector<Range> LocationValueSet::getConsecutiveRanges(LocationValueSet::value_type &step) const {
-    assert(!isConstant());
-    if(empty())
+    if (empty())
         return vector<Range>();
-    typedef vector<value_type> V;
-    typedef V::const_iterator VItr;
-    V derivative(size());
-    adjacent_difference(begin(), end(), derivative.begin());
-    step = max(value_type(1), *min_element(derivative.begin(), derivative.end()));
     vector<Range> ranges;
-    const_iterator itr = begin();
-    VItr d_itr = derivative.begin();
-    for (; d_itr != derivative.end(); ++d_itr, ++itr) {
-        if (*d_itr == step && !ranges.empty())
-            ranges.back().last = *itr;
-        else
-            ranges.push_back(Range(*itr, *itr));
+    if (isConstant()) {
+        ranges.push_back(Range(*begin(), *begin()));
+    } else {
+        typedef vector<value_type> V;
+        typedef V::const_iterator VItr;
+        V derivative(size());
+        adjacent_difference(begin(), end(), derivative.begin());
+        step = max(value_type(1), *min_element(derivative.begin(), derivative.end()));
+        const_iterator itr = begin();
+        VItr d_itr = derivative.begin();
+        for (; d_itr != derivative.end(); ++d_itr, ++itr) {
+            if (*d_itr == step && !ranges.empty())
+                ranges.back().last = *itr;
+            else
+                ranges.push_back(Range(*itr, *itr));
+        }
     }
     return ranges;
 }
