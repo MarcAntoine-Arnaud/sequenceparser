@@ -1,11 +1,13 @@
 #ifndef RANGE_H_
 #define RANGE_H_
 
+#include "Config.h"
+
 #include <stdexcept>
 
 namespace sequence {
 
-struct Range {
+struct SEQUENCEPARSER_API Range {
     unsigned int first;
     unsigned int last;
     Range() : first(0), last(0) { }
@@ -27,7 +29,7 @@ struct Range {
     unsigned int clampFrame(unsigned int current) const;
 };
 
-unsigned int interpolateSource(const unsigned int atRecIndex, const Range &source, const Range &record, const bool reverse);
+SEQUENCEPARSER_API unsigned int interpolateSource(const unsigned int atRecIndex, const Range &source, const Range &record, const bool reverse);
 
 } /* namespace sequence */
 #endif /* RANGE_H_ */

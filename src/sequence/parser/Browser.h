@@ -8,6 +8,7 @@
 #ifndef BROWSER_H_
 #define BROWSER_H_
 
+#include <sequence/Config.h>
 #include <sequence/BrowseItem.h>
 #include <vector>
 
@@ -17,7 +18,7 @@ typedef std::vector<sequence::BrowseItem> BrowseItems;
 
 namespace parser {
 
-BrowseItems browse(const char* directory, bool recursive = false);
+BrowseItems SEQUENCEPARSER_API browse(const char* directory, bool recursive = false);
 
 } /* namespace parser */
 

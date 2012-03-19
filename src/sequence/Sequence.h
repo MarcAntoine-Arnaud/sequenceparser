@@ -1,6 +1,7 @@
 #ifndef SEQUENCE_H_
 #define SEQUENCE_H_
 
+#include "Config.h"
 #include "Range.h"
 
 #include <boost/filesystem/path.hpp>
@@ -13,7 +14,7 @@ namespace sequence {
 
 const char gPaddingChar = '#';
 
-struct SequencePattern {
+struct SEQUENCEPARSER_API SequencePattern {
     std::string prefix;
     std::string suffix;
     unsigned char padding;
@@ -23,7 +24,7 @@ struct SequencePattern {
     std::string string() const;
 };
 
-struct Sequence {
+struct SEQUENCEPARSER_API Sequence {
     SequencePattern pattern;
     Range range;
     unsigned short step;
@@ -31,9 +32,9 @@ struct Sequence {
     Sequence(const SequencePattern &pattern, const Range &range = Range(), unsigned short step=1) : pattern(pattern), range(range), step(step){}
 };
 
-SequencePattern parsePattern(const std::string& filename);
+SEQUENCEPARSER_API SequencePattern parsePattern(const std::string& filename);
 
-std::string instanciatePattern(const SequencePattern &pattern, unsigned int frame);
+SEQUENCEPARSER_API std::string instanciatePattern(const SequencePattern &pattern, unsigned int frame);
 
 namespace details {
 

@@ -5,6 +5,6 @@ project :
             <library>/boost//unit_test_framework
         ;
             
-unit-test seq_tests : sequence_tests.cpp /sequence//sequence ;
+unit-test seq_tests : sequence_tests.cpp /sequence//sequence/<link>static ;
 
-unit-test parse_tests : parser_tests.cpp /sequence_parser//sequence_parser ;
+unit-test parse_tests : parser_tests.cpp /sequence_parser//sequence_parser/<link>static ;

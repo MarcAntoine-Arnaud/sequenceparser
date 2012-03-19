@@ -8,10 +8,10 @@
 #ifndef PARSERUTILS_H_
 #define PARSERUTILS_H_
 
+#include <sequence/Config.h>
 #include <sequence/BrowseItem.h>
 
 #include <boost/unordered_map.hpp>
-#include <boost/container/flat_set.hpp>
 
 #include <set>
 #include <map>
@@ -34,7 +34,7 @@ typedef std::vector<value_type> Values;
 /**
  * A location within a string
  */
-struct Location {
+struct SEQUENCEPARSER_LOCAL Location {
     unsigned char first;
     unsigned char count;
     Location() {}
@@ -55,7 +55,7 @@ typedef std::vector<Location> Locations;
  * will produce the following number    : 20,1234,2
  * will produce the following pattern   : file-##.####.cr#
  */
-void extractPattern(std::string &filename, Locations &locations, Values &numbers);
+SEQUENCEPARSER_LOCAL void extractPattern(std::string &filename, Locations &locations, Values &numbers);
 
 /**
  * Represents the different values for a given Location and a given Pattern.
@@ -66,7 +66,7 @@ void extractPattern(std::string &filename, Locations &locations, Values &numbers
  * The first LocationValueSet will contain : 1,2,3,4
  * The second LocationValueSet will contain : 2
  */
-struct LocationValueSet : public std::set<value_type> {
+struct SEQUENCEPARSER_API LocationValueSet : public std::set<value_type> {
     /**
      * returns true if this set contains a single value
      */
@@ -94,7 +94,7 @@ struct LocationValueSet : public std::set<value_type> {
  * Location is actually the counter, the other ones are then discarded by mutating
  * this object through the removeConstantLocation function.
  */
-struct PatternAggregator : public Values {
+struct SEQUENCEPARSER_LOCAL PatternAggregator : public Values {
     typedef std::vector<LocationValueSet> LocationValueSets;
     PatternAggregator(const std::string &key, const Locations& locations) : key(key), locations(locations), locationValueSets(locations.size()) { }
     /**
@@ -149,7 +149,7 @@ private:
  * - generate the according BrowserItem
  * - return the list of BrowseItem
  */
-struct SequenceDetector : private boost::unordered_map<std::string, PatternAggregator> {
+struct SEQUENCEPARSER_LOCAL SequenceDetector : private boost::unordered_map<std::string, PatternAggregator> {
     SequenceDetector(const boost::filesystem::path &path = "") : path(path) { }
     const PatternAggregator& operator()(const char* filename);
     const std::vector<BrowseItem>& getResults();
@@ -167,7 +167,7 @@ public:
     using ME::value_type;
 };
 
-struct Parser : private boost::unordered_map<std::string, SequenceDetector>, private boost::noncopyable{
+struct SEQUENCEPARSER_API Parser : private boost::unordered_map<std::string, SequenceDetector>, private boost::noncopyable {
     void operator()(const std::string &);
     std::vector<BrowseItem> getResults();
     struct Proxy {

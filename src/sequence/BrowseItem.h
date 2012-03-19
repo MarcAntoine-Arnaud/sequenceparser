@@ -1,6 +1,7 @@
 #ifndef BROWSEITEM_H_
 #define BROWSEITEM_H_
 
+#include "Config.h"
 #include "Sequence.h"
 
 #include <boost/filesystem/path.hpp>
@@ -20,7 +21,7 @@ enum BrowseItemType {
  *
  * No need for inheritance here. The object is lightweight and straightforward.
  */
-struct BrowseItem {
+struct SEQUENCEPARSER_API BrowseItem {
     BrowseItemType type;
     boost::filesystem::path path;
     Sequence sequence;
@@ -32,17 +33,17 @@ struct BrowseItem {
 /**
  * Helper to quickly create a folder
  */
-BrowseItem create_folder(const boost::filesystem::path &path);
+SEQUENCEPARSER_API BrowseItem create_folder(const boost::filesystem::path &path);
 
 /**
  * Helper to quickly create a unique file
  */
-BrowseItem create_file(const boost::filesystem::path &filename);
+SEQUENCEPARSER_API BrowseItem create_file(const boost::filesystem::path &filename);
 
 /**
  * Helper to quickly create a sequence
  */
-BrowseItem create_sequence(const boost::filesystem::path &path, //
+SEQUENCEPARSER_API BrowseItem create_sequence(const boost::filesystem::path &path, //
                 const SequencePattern &pattern, //
                 const Range &range, //
                 const unsigned short step = 1);

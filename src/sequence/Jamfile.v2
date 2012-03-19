@@ -1,10 +1,13 @@
 project :	
 			requirements
-			<include>..
 			<library>/boost//filesystem/<link>shared
+            <link>shared:<define>SEQUENCEPARSER_DLL_EXPORTS
+		    <link>shared:<define>SEQUENCEPARSER_DLL
+		    <toolset>gcc:<cxxflags>-fvisibility=hidden
+            <toolset>gcc:<cxxflags>-fvisibility-inlines-hidden
 		:	usage-requirements
-			<include>..
 			<library>/boost//filesystem/<link>shared
+            <link>shared:<define>SEQUENCEPARSER_DLL
 		;
 
 explicit sequence ;

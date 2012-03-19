@@ -11,13 +11,13 @@ struct Range;
 struct SequencePattern;
 struct Sequence;
 
-const char* toString(const BrowseItemType type);
+SEQUENCEPARSER_API const char* toString(const BrowseItemType type);
 
-std::ostream& operator<<(std::ostream &stream, const Range &range);
-std::ostream& operator<<(std::ostream &stream, const SequencePattern &pattern);
-std::ostream& operator<<(std::ostream &stream, const Sequence &sequence);
-std::ostream& operator<<(std::ostream &stream, const BrowseItemType &type);
-std::ostream& operator<<(std::ostream &stream, const BrowseItem &item);
+SEQUENCEPARSER_API std::ostream& operator<<(std::ostream &stream, const Range &range);
+SEQUENCEPARSER_API std::ostream& operator<<(std::ostream &stream, const SequencePattern &pattern);
+SEQUENCEPARSER_API std::ostream& operator<<(std::ostream &stream, const Sequence &sequence);
+SEQUENCEPARSER_API std::ostream& operator<<(std::ostream &stream, const BrowseItemType &type);
+SEQUENCEPARSER_API std::ostream& operator<<(std::ostream &stream, const BrowseItem &item);
 
 } /* namespace sequence */
 #endif /* DISPLAYUTILS_H_ */
