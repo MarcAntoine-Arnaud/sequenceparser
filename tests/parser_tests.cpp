@@ -1,5 +1,5 @@
 #include <sequence/parser/Browser.h>
-#include <sequence/parser/ParserUtils.h>
+#include <sequence/parser/details/ParserUtils.h>
 #include <sequence/DisplayUtils.h>
 
 #include <boost/filesystem/path.hpp>
@@ -208,7 +208,6 @@ BOOST_AUTO_TEST_CASE( FinalizeTest )
         BOOST_CHECK_EQUAL( item.type, UNITFILE);
         BOOST_CHECK_EQUAL( item.path, "path/file_with_numbers_0213.txt");
     }
-//    copy(items.begin(), items.end(), ostream_iterator<sequence::BrowseItem>(cout, "\n"));
 }
 
 BOOST_AUTO_TEST_CASE( TrickyTestCaseWithSeveralIncrementingCounter )

@@ -80,8 +80,7 @@ static inline void overwrite(unsigned int value, string &inString, const Locatio
 }
 
 vector<Range> LocationValueSet::getConsecutiveRanges(LocationValueSet::value_type &step) const {
-    if (empty())
-        return vector<Range>();
+    assert(!empty());
     vector<Range> ranges;
     if (isConstant()) {
         ranges.push_back(Range(*begin(), *begin()));
@@ -145,6 +144,21 @@ PatternAggregator PatternAggregator::removeConstantLocations() const {
     return discard(discardLocations);
 }
 
+vector<PatternAggregator> PatternAggregator::groupBy(const size_t locationIndex) const {
+    assert(!locationValueSets[locationIndex].isConstant());
+    map<value_type, PatternAggregator> groups;
+    const size_t locationCount = locationCount();
+    PatternAggregator::const_iterator itr = begin();
+    for (size_t current = 0; itr != end(); ++itr, ++current, current %= locationCount) {
+        const value_type value = *itr;
+        if(current==locationIndex){
+//            groups[value]
+        }else{
+
+        }
+    }
+}
+
 void SequenceDetector::reduce() {
     vector<PatternAggregator> toAdd;
     vector<string> toDelete;
@@ -154,7 +168,7 @@ void SequenceDetector::reduce() {
         if (newOne.isReady()) {
             toAdd.push_back(newOne);
         } else { // still more than one location, splitting according to first locations
-            printf("I'm only a poor little parser and I can't do a thing with %s\n", current.key.c_str());
+            printf("I'm only a poor little parser and I can't do a thing with %s\n", newOne.key.c_str());
             continue;
         }
         toDelete.push_back(itr->first);

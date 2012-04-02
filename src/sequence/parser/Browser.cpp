@@ -6,7 +6,7 @@
  */
 
 #include "Browser.h"
-#include "ParserUtils.h"
+#include "details/ParserUtils.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/unordered_map.hpp>

@@ -96,7 +96,9 @@ struct SEQUENCEPARSER_API LocationValueSet : public std::set<value_type> {
  */
 struct SEQUENCEPARSER_LOCAL PatternAggregator : public Values {
     typedef std::vector<LocationValueSet> LocationValueSets;
-    PatternAggregator(const std::string &key, const Locations& locations) : key(key), locations(locations), locationValueSets(locations.size()) { }
+    PatternAggregator(const std::string &key, const Locations& locations) : key(key), locations(locations), locationValueSets(locations.size()) {
+        reserve(64*1024);
+    }
     /**
      * append a set of values for a new entry
      */
@@ -126,6 +128,10 @@ struct SEQUENCEPARSER_LOCAL PatternAggregator : public Values {
      */
     PatternAggregator removeConstantLocations() const;
     /**
+     * create several copies in which the locationIndex is constant
+     */
+    vector<PatternAggregator> groupBy(size_t locationIndex) const;
+    /**
      * testing purpose only, returns the sets associated to Locations
      */
     const LocationValueSets& getValueSets() const { return locationValueSets; }
@@ -134,7 +140,7 @@ public:
     Locations locations;
 private:
     PatternAggregator discard(const std::vector<bool> &) const;
-private:
+
     LocationValueSets locationValueSets;
 };
 
