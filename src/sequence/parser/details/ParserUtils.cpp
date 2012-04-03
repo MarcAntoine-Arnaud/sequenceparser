@@ -144,21 +144,6 @@ PatternAggregator PatternAggregator::removeConstantLocations() const {
     return discard(discardLocations);
 }
 
-vector<PatternAggregator> PatternAggregator::groupBy(const size_t locationIndex) const {
-    assert(!locationValueSets[locationIndex].isConstant());
-    map<value_type, PatternAggregator> groups;
-    const size_t locationCount = locationCount();
-    PatternAggregator::const_iterator itr = begin();
-    for (size_t current = 0; itr != end(); ++itr, ++current, current %= locationCount) {
-        const value_type value = *itr;
-        if(current==locationIndex){
-//            groups[value]
-        }else{
-
-        }
-    }
-}
-
 void SequenceDetector::reduce() {
     vector<PatternAggregator> toAdd;
     vector<string> toDelete;

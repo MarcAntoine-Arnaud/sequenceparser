@@ -12,6 +12,7 @@
 #include <sequence/BrowseItem.h>
 
 #include <boost/unordered_map.hpp>
+#include <boost/container/flat_set.hpp>
 
 #include <set>
 #include <map>
@@ -37,8 +38,11 @@ typedef std::vector<value_type> Values;
 struct SEQUENCEPARSER_LOCAL Location {
     unsigned char first;
     unsigned char count;
-    Location() {}
-    Location(unsigned char first, unsigned char count) : first(first), count(count) { }
+    Location() {
+    }
+    Location(unsigned char first, unsigned char count) :
+                    first(first), count(count) {
+    }
 };
 
 /**
@@ -57,6 +61,15 @@ typedef std::vector<Location> Locations;
  */
 SEQUENCEPARSER_LOCAL void extractPattern(std::string &filename, Locations &locations, Values &numbers);
 
+struct SEQUENCEPARSER_API LocationValueSet2 {
+    typedef boost::container::flat_multiset<value_type> multiset;
+    inline void insert(value_type value);
+    size_t size() const;
+    size_t count_different() const;
+    std::vector<Range> getConsecutiveRanges(value_type &step) const;
+    multiset values;
+};
+
 /**
  * Represents the different values for a given Location and a given Pattern.
  *
@@ -70,11 +83,15 @@ struct SEQUENCEPARSER_API LocationValueSet : public std::set<value_type> {
     /**
      * returns true if this set contains a single value
      */
-    bool isConstant() const { return size() == 1; }
+    bool isConstant() const {
+        return size() == 1;
+    }
     /**
      * returns the value if this set is a constant
      */
-    value_type getConstantValue() const { return *begin(); }
+    value_type getConstantValue() const {
+        return *begin();
+    }
     /**
      * retrieves all the consecutive Range found in this set
      * ie : 5,6,7,10,11,12,21 will produce
@@ -96,8 +113,9 @@ struct SEQUENCEPARSER_API LocationValueSet : public std::set<value_type> {
  */
 struct SEQUENCEPARSER_LOCAL PatternAggregator : public Values {
     typedef std::vector<LocationValueSet> LocationValueSets;
-    PatternAggregator(const std::string &key, const Locations& locations) : key(key), locations(locations), locationValueSets(locations.size()) {
-        reserve(64*1024);
+    PatternAggregator(const std::string &key, const Locations& locations) :
+                    key(key), locations(locations), locationValueSets(locations.size()) {
+        reserve(64 * 1024);
     }
     /**
      * append a set of values for a new entry
@@ -106,35 +124,44 @@ struct SEQUENCEPARSER_LOCAL PatternAggregator : public Values {
     /**
      * returns the number of filenames within this pattern
      */
-    size_t fileCount() const { return locations.empty() ? 1 : size() / locationCount(); }
+    size_t fileCount() const {
+        return locations.empty() ? 1 : size() / locationCount();
+    }
     /**
      * returns the number of Location within this pattern
      */
-    size_t locationCount() const { return locations.size(); }
+    size_t locationCount() const {
+        return locations.size();
+    }
     /**
      * false if more than one Location is available
      */
-    inline bool isReady() const { return locationCount() < 2; }
+    inline bool isReady() const {
+        return locationCount() < 2;
+    }
     /**
      * if no other value was appended, this pattern is a single file with numbers in it
      */
-    inline bool isSingleFile() const { return fileCount() == 1; }
+    inline bool isSingleFile() const {
+        return fileCount() == 1;
+    }
     /**
      * returns the Set selected as a counter for this pattern
      */
-    const LocationValueSet& getSelectedSet() const { assert(locationCount()==1); return locationValueSets[0]; }
+    const LocationValueSet& getSelectedSet() const {
+        assert(locationCount()==1);
+        return locationValueSets[0];
+    }
     /**
      * creates a copy of this pattern and bake the constant values in the key
      */
     PatternAggregator removeConstantLocations() const;
     /**
-     * create several copies in which the locationIndex is constant
-     */
-    vector<PatternAggregator> groupBy(size_t locationIndex) const;
-    /**
      * testing purpose only, returns the sets associated to Locations
      */
-    const LocationValueSets& getValueSets() const { return locationValueSets; }
+    const LocationValueSets& getValueSets() const {
+        return locationValueSets;
+    }
 public:
     std::string key;
     Locations locations;
@@ -156,7 +183,9 @@ private:
  * - return the list of BrowseItem
  */
 struct SEQUENCEPARSER_LOCAL SequenceDetector : private boost::unordered_map<std::string, PatternAggregator> {
-    SequenceDetector(const boost::filesystem::path &path = "") : path(path) { }
+    SequenceDetector(const boost::filesystem::path &path = "") :
+                    path(path) {
+    }
     const PatternAggregator& operator()(const char* filename);
     const std::vector<BrowseItem>& getResults();
 private:
@@ -177,12 +206,20 @@ struct SEQUENCEPARSER_API Parser : private boost::unordered_map<std::string, Seq
     void operator()(const std::string &);
     std::vector<BrowseItem> getResults();
     struct Proxy {
-        Proxy(Parser *ptr) : ptr(ptr) {}
-        inline void operator()(const std::string &path){ (*ptr)(path); }
-        inline void operator()(const boost::filesystem::path &path){ (*ptr)(path.string()); }
+        Proxy(Parser *ptr) :
+                        ptr(ptr) {
+        }
+        inline void operator()(const std::string &path) {
+            (*ptr)(path);
+        }
+        inline void operator()(const boost::filesystem::path &path) {
+            (*ptr)(path.string());
+        }
         Parser *ptr;
     };
-    Proxy functor(){ return Proxy(this); }
+    Proxy functor() {
+        return Proxy(this);
+    }
 };
 
 } /* namespace details */

@@ -5,8 +5,10 @@
  *      Author: Guillaume Chatelet
  */
 
-#include <sequence/parser/details/ParserUtils.h>
+#include <sequence/parser/details/Utils.h>
 #include <sequence/DisplayUtils.h>
+
+#include <boost/bind.hpp>
 
 #include <boost/chrono/chrono.hpp>
 #include <boost/chrono/chrono_io.hpp>
@@ -44,7 +46,8 @@ void test(const vector<string> &paths) {
     for_each(paths.begin(), paths.end(), parser.functor());
     const high_resolution_clock::time_point mid = high_resolution_clock::now();
 
-    Items items = parser.getResults();
+    parser.results();
+    Items items;// = parser.getResults();
     const high_resolution_clock::time_point end = high_resolution_clock::now();
 
     ostringstream stream;
@@ -69,7 +72,7 @@ int main(int argc, char **argv) {
         test(preparePaths("/s/prods/le_terrier/prepa/animatic/images/3d/wip/LGT-prepaanimatic-shot01/", patterns, Range(1, 400)));
         patterns.clear();
         patterns.push_back(parsePattern("file-0001.bad.#######.exr"));
-        test(preparePaths("/s/", patterns, Range(0, 200000)));
+        test(preparePaths("/s/", patterns, Range(0, 20000)));
         return EXIT_SUCCESS;
     } catch (exception& e) {
         cerr << "Unexpected error : " << e.what() << endl;
