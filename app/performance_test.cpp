@@ -46,8 +46,7 @@ void test(const vector<string> &paths) {
     for_each(paths.begin(), paths.end(), parser.functor());
     const high_resolution_clock::time_point mid = high_resolution_clock::now();
 
-    parser.results();
-    Items items;// = parser.getResults();
+    Items items = parser.getResults();
     const high_resolution_clock::time_point end = high_resolution_clock::now();
 
     ostringstream stream;
@@ -64,15 +63,16 @@ int main(int argc, char **argv) {
         for (int i = 1; i < 4; ++i) {
             ostringstream ss;
             ss << "LGT-prepaanimatic--shot01-v00" << i;
-            patterns.push_back(parsePattern(ss.str() + ".####.exr"));
+            patterns.push_back(parsePattern("pouet.####." + ss.str() + "__" + ss.str() + ".cr2"));
             patterns.push_back(parsePattern(ss.str() + "_directDiffuse.####.exr"));
-            patterns.push_back(parsePattern(ss.str() + "_indirectDiffuse.####.exr"));
+            patterns.push_back(parsePattern(ss.str() + "_indirectDiffuse.####.cr2"));
             patterns.push_back(parsePattern(ss.str() + "_z.####.exr"));
         }
         test(preparePaths("/s/prods/le_terrier/prepa/animatic/images/3d/wip/LGT-prepaanimatic-shot01/", patterns, Range(1, 400)));
-        patterns.clear();
-        patterns.push_back(parsePattern("file-0001.bad.#######.exr"));
-        test(preparePaths("/s/", patterns, Range(0, 20000)));
+//        patterns.clear();
+//        patterns.push_back(parsePattern("file-0001.bad.#######.cr2"));
+//        test(preparePaths("/s/", patterns, Range(0, 20000)));
+        test(preparePaths("/s/", patterns, Range(0, 0)));
         return EXIT_SUCCESS;
     } catch (exception& e) {
         cerr << "Unexpected error : " << e.what() << endl;

@@ -11,6 +11,7 @@
 #include <sequence/Config.h>
 #include <sequence/Range.h>
 #include <sequence/Sequence.h>
+#include <sequence/BrowseItem.h>
 #include <boost/bind.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/container/flat_set.hpp>
@@ -120,10 +121,14 @@ Ranges getRangesAndStep(ForwardIterator begin, const ForwardIterator end, size_t
 typedef boost::container::flat_set<value_type> Set;
 
 struct LocationData {
+    LocationData(const LocationData &other) {
+        allValues = other.allValues;
+        location = other.location;
+        sortedValues = other.sortedValues;
+    }
     LocationData() {
         static size_t preAllocate = 64 * 1024;
         allValues.reserve(preAllocate);
-
     }
     inline void insert(value_type value) {
         allValues.push_back(value);
@@ -139,10 +144,32 @@ struct LocationData {
         value = *sortedValues.begin();
         return sortedValues.size() == 1;
     }
+    LocationData& operator=(const LocationData &other) {
+        if (this != &other) {
+            allValues = other.allValues;
+            location = other.location;
+            sortedValues = other.sortedValues;
+        }
+        return *this;
+    }
     Location location;
     Values allValues;
     Set sortedValues;
+    static bool less(const LocationData &a, const LocationData &b) {
+        return a.sortedValues.size() < b.sortedValues.size();
+    }
 };
+
+typedef std::vector<LocationData> LocationDatas;
+
+static inline void overwrite(unsigned int value, std::string &inString, const Location &atLocation) {
+    sequence::details::CharStack<> stack(value);
+    while (stack.size() < atLocation.count)
+        stack.push('0');
+    char* ptr = &inString[atLocation.first];
+    for (; !stack.empty(); stack.pop(), ++ptr)
+        *ptr = stack.top();
+}
 
 struct Pattern {
     Pattern(const std::string &key, const Locations& locations) :
@@ -157,7 +184,7 @@ struct Pattern {
         allValues.insert(allValues.end(), values.begin(), values.end());
     }
 
-    void generateLocationData() {
+    void prepare() {
         const size_t elements = allValues.size() / locationData.size();
         const LocationDatas::iterator begin = locationData.begin();
         const LocationDatas::iterator end = locationData.end();
@@ -179,7 +206,7 @@ struct Pattern {
             const LocationData &current = *itr;
             value_type value = 0;
             if (current.dismiss(value))
-                overwrite(value, current.location);
+                overwrite(value, key, current.location);
             else
                 newLocations.push_back(current);
         }
@@ -188,17 +215,7 @@ struct Pattern {
 
     std::string key;
     Values allValues;
-    typedef std::vector<LocationData> LocationDatas;
     LocationDatas locationData;
-private:
-    void overwrite(value_type value, const Location &atLocation) {
-        sequence::details::CharStack<> stack(value);
-        while (stack.size() < atLocation.count)
-            stack.push('0');
-        char* ptr = &key[atLocation.first];
-        for (; !stack.empty(); stack.pop(), ++ptr)
-            *ptr = stack.top();
-    }
 };
 
 typedef boost::unordered::unordered_map<std::string, Pattern> PatternsPerDir;
@@ -215,12 +232,80 @@ void insert(TmpData&, PatternsPerDir &, std::string filename);
 // filling structures
 void insertPath(TmpData&, AllPatterns &, const std::string& absolutePath);
 
+struct Splitter {
+    template<typename Pair>
+    struct second_t {
+        typename Pair::second_type operator()(const Pair& p) const {
+            return p.second;
+        }
+    };
+
+    template<typename Map>
+    second_t<typename Map::value_type> second(const Map& m) {
+        return second_t<typename Map::value_type>();
+    }
+
+    Splitter(const Pattern& pattern) :
+                    pattern(pattern), //
+                    locations(pattern.locationData), //
+                    begin(locations.begin()), //
+                    end(locations.end()), //
+                    pivot(std::min_element(begin, end, &LocationData::less)) {
+        assert(locations.size()>1);
+
+        // getting pointers to all other columns
+        pColumns.reserve(locations.size());
+        for (LocationDatas::const_iterator itr = begin; itr != end; ++itr)
+            if (itr != pivot)
+                pColumns.push_back(itr);
+
+        const Values &dispatcher = pivot->allValues;
+        size_t i = 0;
+        Values tmp;
+        for (Values::const_iterator pValue = dispatcher.begin(), pValueEnd = dispatcher.end(); pValue != pValueEnd; ++pValue, ++i) {
+            tmp.clear();
+            for (LocationsPtr::const_iterator itr = pColumns.begin(), end = pColumns.end(); itr != end; ++itr)
+                tmp.push_back((*itr)->allValues[i]);
+            getPattern(*pValue).insert(tmp);
+        }
+        std::transform(map.begin(), map.end(), std::back_inserter(patterns), second_t<Map::value_type>());
+    }
+
+    Pattern& getPattern(value_type value) {
+        Map::iterator pFound = map.find(value);
+        if (pFound == map.end()) {
+            std::string key = pattern.key;
+            overwrite(value, key, pivot->location);
+            Locations newLocations;
+            for (LocationsPtr::const_iterator itr = pColumns.begin(), end = pColumns.end(); itr != end; ++itr)
+                newLocations.push_back((*itr)->location);
+            Pattern newPattern(key, newLocations);
+            pFound = map.insert(std::make_pair(value, newPattern)).first;
+        }
+        return pFound->second;
+    }
+
+    typedef LocationDatas::const_iterator LocationPtr;
+    typedef std::vector<LocationPtr> LocationsPtr;
+    typedef std::map<size_t, Pattern> Map;
+
+    const Pattern& pattern;
+    const LocationDatas &locations;
+    const LocationPtr begin, end, pivot;
+    LocationsPtr pColumns;
+    Map map;
+    std::vector<Pattern> patterns;
+};
+
 struct Parser {
     inline void insert(const std::string& absolutePath) {
         insertPath(tmp, allPatterns, absolutePath);
     }
-    void results() {
-        std::for_each(allPatterns.begin(), allPatterns.end(), &Parser::preparePath);
+    std::vector<sequence::BrowseItem> getResults() {
+        if (!results.empty())
+            return results;
+        std::for_each(allPatterns.begin(), allPatterns.end(), boost::bind(&Parser::preparePath, this, _1));
+        return results;
     }
     struct Functor {
         Functor(Parser *pParser) :
@@ -235,20 +320,48 @@ struct Parser {
         return Functor(this);
     }
 private:
-    static void preparePath(AllPatterns::value_type &pair) {
+    void addPattern(const std::string& path, const Pattern& pattern) {
+        const LocationDatas &locations = pattern.locationData;
+        if (locations.empty()) {
+            results.push_back(create_file(boost::filesystem::path(path) / pattern.key));
+            return;
+        }
+        assert(locations.size()==1);
+        const LocationData &location = locations[0];
+        const Set &set = location.sortedValues;
+        value_type step = 0;
+        const Ranges ranges = getRangesAndStep(set.begin(), set.end(), step);
+        std::transform(ranges.begin(), //
+                       ranges.end(), //
+                       std::back_inserter(results), //
+                       boost::bind(&Parser::createItem, this, boost::ref(path), boost::ref(pattern), _1, step));
+    }
+    BrowseItem createItem(const std::string &path, const Pattern& pattern, const Range range, const size_t step) {
+        return create_sequence(path, parsePattern(pattern.key), range, step);
+    }
+    void preparePath(AllPatterns::value_type &pair) {
         std::vector<Pattern> ready;
-        std::for_each(pair.second.begin(), pair.second.end(), boost::bind(&Parser::preparePattern, boost::ref(ready), _1));
+        PatternsPerDir &patterns = pair.second;
+        std::for_each(patterns.begin(), patterns.end(), boost::bind(&Parser::preparePattern, boost::ref(ready), _1));
+        const std::string &path = pair.first;
+        std::for_each(ready.begin(), ready.end(), boost::bind(&Parser::addPattern, this, boost::ref(path), _1));
     }
     static void preparePattern(std::vector<Pattern> &ready, PatternsPerDir::value_type &pair) {
-        pair.second.generateLocationData();
         mutate(ready, pair.second);
     }
     static void mutate(std::vector<Pattern>& ready, Pattern& pattern) {
+        pattern.prepare();
         pattern.bakeConstantLocations();
+        if (pattern.locationData.size() < 2)
+            ready.push_back(pattern);
+        else {
+            Splitter splitter(pattern);
+            std::for_each(splitter.patterns.begin(), splitter.patterns.end(), boost::bind(&Parser::mutate, boost::ref(ready), _1));
+        }
     }
-
     TmpData tmp;
     AllPatterns allPatterns;
+    std::vector<sequence::BrowseItem> results;
 };
 
 } /* namespace details */
