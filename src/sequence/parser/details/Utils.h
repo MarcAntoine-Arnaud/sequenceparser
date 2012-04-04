@@ -25,6 +25,17 @@ namespace sequence {
 namespace parser {
 namespace details {
 
+static inline bool isDigit(std::string::value_type c) {
+    return c >= '0' && c <= '9';
+}
+
+static inline size_t atoi(std::string::const_iterator begin, const std::string::const_iterator end) {
+    size_t value = 0;
+    for (; begin != end; ++begin)
+        value = value * 10 + (*begin - '0');
+    return value;
+}
+
 /**
  * The type used to store values found in the pattern
  */
@@ -62,13 +73,30 @@ typedef std::vector<Location> Locations;
  * will produce the following number    : 20,1234,2
  * will produce the following pattern   : file-##.####.cr#
  */
-SEQUENCEPARSER_LOCAL void extractPattern(std::string &filename, Locations &locations, Values &numbers);
+static void extractPattern(std::string &pattern, Locations &locations, Values &values) {
+    locations.clear();
+    values.clear();
+    typedef std::string::iterator Itr;
+    const Itr begin = pattern.begin();
+    Itr current = begin;
+    const Itr end = pattern.end();
+    while ((current = find_if(current, end, isDigit)) != end) {
+        Location location;
+        location.first = distance(begin, current);
+        const Itr pastDigitEnd = find_if(current, end, std::not1(std::ptr_fun(isDigit)));
+        location.count = distance(current, pastDigitEnd);
+        values.push_back(atoi(current, pastDigitEnd));
+        locations.push_back(location);
+        fill(current, pastDigitEnd, '#');
+        current = pastDigitEnd;
+    }
+}
 
 /**
  * In a sorted container, count the number of different values
  */
 template<typename ForwardIterator>
-size_t count_different(ForwardIterator begin, const ForwardIterator end) {
+static size_t count_different(ForwardIterator begin, const ForwardIterator end) {
     if (begin == end)
         return 0;
     size_t count = 1;
@@ -90,7 +118,7 @@ typedef std::vector<Range> Ranges;
  * as the minimal step
  */
 template<typename ForwardIterator>
-Ranges getRangesAndStep(ForwardIterator begin, const ForwardIterator end, size_t &step) {
+static Ranges getRangesAndStep(ForwardIterator begin, const ForwardIterator end, size_t &step) {
     step = 1;
     Ranges ranges;
     const size_t size = std::distance(begin, end);
@@ -185,6 +213,8 @@ struct Pattern {
     }
 
     void prepare() {
+        if (locationData.empty())
+            return;
         const size_t elements = allValues.size() / locationData.size();
         const LocationDatas::iterator begin = locationData.begin();
         const LocationDatas::iterator end = locationData.end();
@@ -228,9 +258,26 @@ struct TmpData {
 };
 
 // filling structures
-void insert(TmpData&, PatternsPerDir &, std::string filename);
+static void insert(TmpData &tmpData, PatternsPerDir &map, std::string key) {
+    extractPattern(key, tmpData.locations, tmpData.values);
+    PatternsPerDir::iterator keyItr = map.find(key);
+    if (keyItr == map.end())
+        keyItr = map.insert(make_pair(key, Pattern(key, tmpData.locations))).first;
+    keyItr->second.insert(tmpData.values);
+}
+
 // filling structures
-void insertPath(TmpData&, AllPatterns &, const std::string& absolutePath);
+static void insertPath(TmpData &tmpData, AllPatterns &allPatterns, const std::string& absolutePath) {
+    const size_t lastSeparator = absolutePath.find_last_of("/\\");
+    const bool emptyParent = lastSeparator == std::string::npos;
+    static const std::string EMPTY;
+    const std::string parent = emptyParent ? EMPTY : absolutePath.substr(0, lastSeparator);
+    AllPatterns::iterator found = allPatterns.find(parent);
+    if (found == allPatterns.end())
+        found = allPatterns.insert(make_pair(parent, PatternsPerDir())).first;
+    const std::string filename = emptyParent ? absolutePath.c_str() : absolutePath.c_str() + lastSeparator + 1;
+    insert(tmpData, found->second, filename);
+}
 
 struct Splitter {
     template<typename Pair>
@@ -325,8 +372,7 @@ private:
         if (locations.empty()) {
             results.push_back(create_file(boost::filesystem::path(path) / pattern.key));
             return;
-        }
-        assert(locations.size()==1);
+        }assert(locations.size()==1);
         const LocationData &location = locations[0];
         const Set &set = location.sortedValues;
         value_type step = 0;

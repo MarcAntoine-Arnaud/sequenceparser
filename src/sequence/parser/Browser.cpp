@@ -6,7 +6,7 @@
  */
 
 #include "Browser.h"
-#include "details/ParserUtils.h"
+#include "details/Utils.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/unordered_map.hpp>
@@ -34,17 +34,27 @@ static inline void changeTypeIfNeeded(BrowseItem &item) {
         item.type = FOLDER;
 }
 
+struct SEQUENCEPARSER_LOCAL Proxy {
+    Proxy(Parser&parser) :
+                    parser(parser) {
+    }
+    void operator()(const boost::filesystem::path &path){
+        parser.insert(path.string());
+    }
+    Parser &parser;
+};
+
 std::vector<BrowseItem> browse(const char* directory, bool recursive) {
     const path folder = getDirectory(directory);
     Parser parser;
     if (recursive)
         for_each(recursive_directory_iterator(folder), //
                  recursive_directory_iterator(), //
-                 parser.functor());
+                 Proxy(parser));
     else
         for_each(directory_iterator(folder), //
                  directory_iterator(), //
-                 parser.functor());
+                 Proxy(parser));
     vector<BrowseItem> items = parser.getResults();
     for_each(items.begin(), items.end(), &changeTypeIfNeeded);
     return items;

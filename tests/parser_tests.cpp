@@ -1,5 +1,5 @@
 #include <sequence/parser/Browser.h>
-#include <sequence/parser/details/ParserUtils.h>
+#include <sequence/parser/details/Utils.h>
 #include <sequence/DisplayUtils.h>
 
 #include <boost/filesystem/path.hpp>
@@ -32,24 +32,22 @@ BOOST_AUTO_TEST_CASE( LocationValueSetGetStepTest )
 {
     unsigned step;
     {
-        LocationValueSet set;
-        std::vector<Range> ranges = set.getConsecutiveRanges(step);
+        set<size_t> set;
+        std::vector<Range> ranges = getRangesAndStep(set.begin(), set.end(),step);
         BOOST_CHECK( ranges.empty() );
     }
     {
-        LocationValueSet set;
+        set<size_t> set;
         boost::assign::insert(set)(0)(1)(2)(3)(4);
-        BOOST_CHECK( !set.isConstant() );
-        std::vector<Range> ranges = set.getConsecutiveRanges(step);
+        std::vector<Range> ranges = getRangesAndStep(set.begin(), set.end(),step);
         BOOST_CHECK_EQUAL( step, 1u );
         BOOST_CHECK_EQUAL( ranges.size(), 1u );
         check_equals( ranges[0], Range(0,4));
     }
     {
-        LocationValueSet set;
+        set<size_t> set;
         boost::assign::insert(set)(1)(2)(5)(6)(11)(12)(13)(14)(20)(22)(24)(26)(28)(30)(34)(36);
-        BOOST_CHECK( !set.isConstant() );
-        std::vector<Range> ranges = set.getConsecutiveRanges(step);
+        std::vector<Range> ranges = getRangesAndStep(set.begin(), set.end(),step);
         BOOST_CHECK_EQUAL( step, 1u );
         BOOST_CHECK_EQUAL( ranges.size(), 11u );
         check_equals( ranges[0], Range(1,2));
@@ -65,19 +63,13 @@ BOOST_AUTO_TEST_CASE( LocationValueSetGetStepTest )
         check_equals( ranges[10], Range(36,36));
     }
     {
-        LocationValueSet set;
+        set<size_t> set;
         boost::assign::insert(set)(20)(22)(24)(26)(28)(30)(34)(36);
-        BOOST_CHECK( !set.isConstant() );
-        std::vector<sequence::Range> ranges = set.getConsecutiveRanges(step);
+        std::vector<sequence::Range> ranges = getRangesAndStep(set.begin(), set.end(),step);
         BOOST_CHECK_EQUAL( step, 2u );
         BOOST_CHECK_EQUAL( ranges.size(), 2u );
         check_equals( ranges[0], Range(20,30));
         check_equals( ranges[1], Range(34,36));
-    }
-    {
-        LocationValueSet set;
-        boost::assign::insert(set)(1);
-        BOOST_CHECK( set.isConstant() );
     }
 }
 
@@ -100,56 +92,68 @@ BOOST_AUTO_TEST_CASE( PatternKeyTest )
 
 BOOST_AUTO_TEST_CASE( AggregatorTest )
 {
-    SequenceDetector map;
-    map("p2.sgi");
-    map("p3.sgi");
+    TmpData tmp;
+    PatternsPerDir patterns;
+    insert(tmp, patterns, "p2.sgi");
+    insert(tmp, patterns, "p3.sgi");
 
-    const PatternAggregator &va = map.begin()->second;
-    BOOST_CHECK_EQUAL( va.locationCount(), 1u );
-    BOOST_CHECK_EQUAL( va.fileCount(), 2u );
+    Pattern &va = patterns.begin()->second;
+    BOOST_CHECK_EQUAL( va.locationData.size(), 1u );
+    BOOST_CHECK_EQUAL( va.allValues.size(), 2u );
     BOOST_CHECK_EQUAL( va.key,"p#.sgi");
-    check_equals(va.locations[0], Location(1,1));
-    BOOST_CHECK_EQUAL( va.size(),2u );
-    BOOST_CHECK_EQUAL( va[0],2u );
-    BOOST_CHECK_EQUAL( va[1],3u );
+    const LocationData &locationData = va.locationData[0];
+    check_equals(locationData.location, Location(1,1));
+    BOOST_CHECK_EQUAL( locationData.allValues.size(),0u );
+    va.prepare();
+    BOOST_CHECK_EQUAL( locationData.allValues.size(),2u );
+    BOOST_CHECK_EQUAL( locationData.allValues[0],2u );
+    BOOST_CHECK_EQUAL( locationData.allValues[1],3u );
 }
 
 BOOST_AUTO_TEST_CASE( ValueAggregatorSetsTest )
 {
-    SequenceDetector parser;
-    const PatternAggregator &va = parser("p2.cr2");
-    const PatternAggregator::LocationValueSets &sets = va.getValueSets();
-    BOOST_CHECK_EQUAL( sets.size(),2u );
-    BOOST_CHECK_EQUAL( sets[0].size(),1u );
-    BOOST_CHECK_EQUAL( sets[1].size(),1u );
-    parser("p3.cr2");
-    BOOST_CHECK_EQUAL( sets[0].size(),2u );
-    BOOST_CHECK_EQUAL( sets[1].size(),1u );
-    parser("p3.cr1");
-    BOOST_CHECK_EQUAL( sets[0].size(),2u );
-    BOOST_CHECK_EQUAL( sets[1].size(),2u );
+    TmpData tmp;
+    PatternsPerDir patterns;
+    insert(tmp, patterns, "p2.cr2");
+    Pattern &va = patterns.begin()->second;
+    va.prepare();
+    LocationDatas &locations = va.locationData;
+    BOOST_CHECK_EQUAL( locations.size(),2u );
+    BOOST_CHECK_EQUAL( locations[0].sortedValues.size(),1u );
+    BOOST_CHECK_EQUAL( locations[1].sortedValues.size(),1u );
+    insert(tmp, patterns, "p3.cr2");
+    va.prepare();
+    BOOST_CHECK_EQUAL( locations[0].sortedValues.size(),2u );
+    BOOST_CHECK_EQUAL( locations[1].sortedValues.size(),1u );
+    insert(tmp, patterns, "p3.cr1");
+    va.prepare();
+    BOOST_CHECK_EQUAL( locations[0].sortedValues.size(),2u );
+    BOOST_CHECK_EQUAL( locations[1].sortedValues.size(),2u );
 }
 
 BOOST_AUTO_TEST_CASE( SimplifyingTest )
 {
-    SequenceDetector parser;
-    const PatternAggregator &va = parser("0_0_012");
-    parser("0_1_012");
-    parser("0_2_012");
+    TmpData tmp;
+    PatternsPerDir patterns;
+    insert(tmp, patterns, "0_0_012");
+    insert(tmp, patterns, "0_1_012");
+    insert(tmp, patterns, "0_2_012");
+    Pattern &pattern = patterns.begin()->second;
+    pattern.prepare();
     {
-        BOOST_CHECK_EQUAL( va.key , "#_#_###" );
-        const PatternAggregator::LocationValueSets &sets = va.getValueSets();
-        BOOST_CHECK_EQUAL( sets.size(),3u );
-        BOOST_CHECK_EQUAL( sets[0].size(),1u );
-        BOOST_CHECK_EQUAL( sets[1].size(),3u );
-        BOOST_CHECK_EQUAL( sets[2].size(),1u );
+        BOOST_CHECK_EQUAL( pattern.key , "#_#_###" );
+        const LocationDatas &data = pattern.locationData;
+        BOOST_CHECK_EQUAL( data.size(),3u );
+        BOOST_CHECK_EQUAL( data[0].sortedValues.size(),1u );
+        BOOST_CHECK_EQUAL( data[1].sortedValues.size(),3u );
+        BOOST_CHECK_EQUAL( data[2].sortedValues.size(),1u );
     }
+    pattern.bakeConstantLocations();
     {
-        const PatternAggregator another = va.removeConstantLocations();
-        BOOST_CHECK_EQUAL( another.key,"0_#_012" );
-        const PatternAggregator::LocationValueSets &sets = another.getValueSets();
-        BOOST_CHECK_EQUAL( sets.size(),1u );
-        BOOST_CHECK_EQUAL( sets[0].size(),3u );
+        BOOST_CHECK_EQUAL( pattern.key,"0_#_012" );
+        const LocationDatas &data = pattern.locationData;
+        BOOST_CHECK_EQUAL( data.size(),1u );
+        BOOST_CHECK_EQUAL( data[0].sortedValues.size(),3u );
     }
 }
 
@@ -163,19 +167,21 @@ bool less(const BrowseItem&a, const BrowseItem&b) {
 BOOST_AUTO_TEST_CASE( FinalizeTest )
 {
     using sequence::BrowseItem;
-    SequenceDetector parser("path");
-    parser("afile.txt");
-    parser("file_with_numbers_0213.txt");
-    parser("_00132_file11.cr2");
-    parser("_00132_file12.cr2");
-    parser("_00132_file13.cr2");
-    parser("p13.cr2");
-    parser("p18.cr2");
-    parser("p23.cr2");
-    parser("p28.cr2");
+    Parser parser;
+    parser.insert("path/path");
+    parser.insert("path/afile.txt");
+    parser.insert("path/file_with_numbers_0213.txt");
+    parser.insert("path/_00132_file11.cr2");
+    parser.insert("path/_00132_file12.cr2");
+    parser.insert("path/_00132_file13.cr2");
+    parser.insert("path/p13.cr2");
+    parser.insert("path/p18.cr2");
+    parser.insert("path/p23.cr2");
+    parser.insert("path/p28.cr2");
     std::vector<BrowseItem> items = parser.getResults();
     sort(items.begin(), items.end(), &less);
-// the result will be sorted lexicographically
+    BOOST_CHECK_EQUAL(items.size(), 5u);
+    // the result will be sorted lexicographically
     {
         const BrowseItem &item = items[0];
         BOOST_CHECK_EQUAL( item.type, SEQUENCE);
@@ -208,17 +214,46 @@ BOOST_AUTO_TEST_CASE( FinalizeTest )
         BOOST_CHECK_EQUAL( item.type, UNITFILE);
         BOOST_CHECK_EQUAL( item.path, "path/file_with_numbers_0213.txt");
     }
+    {
+        const BrowseItem &item = items[4];
+        BOOST_CHECK_EQUAL( item.type, UNITFILE);
+        BOOST_CHECK_EQUAL( item.path, "path/path");
+    }
 }
 
 BOOST_AUTO_TEST_CASE( TrickyTestCaseWithSeveralIncrementingCounter )
 {
     using sequence::BrowseItem;
-    SequenceDetector parser;
-    parser("_1_1_");
-    parser("_1_2_");
-    parser("_2_2_");
-    parser("_2_1_");
-    const std::vector<BrowseItem> items = parser.getResults();
+    Parser parser;
+    parser.insert("_1_1_");
+    parser.insert("_1_2_");
+    parser.insert("_2_2_");
+    parser.insert("_2_1_");
+    std::vector<BrowseItem> items = parser.getResults();
+    sort(items.begin(), items.end(), &less);
+    BOOST_CHECK_EQUAL(items.size(), 2u);
+    {
+        const BrowseItem &item = items[0];
+        BOOST_CHECK_EQUAL( item.type, SEQUENCE);
+        BOOST_CHECK_EQUAL( item.path, "");
+        BOOST_CHECK_EQUAL( item.sequence.pattern.prefix, "_1_");
+        BOOST_CHECK_EQUAL( item.sequence.pattern.suffix, "_");
+        BOOST_CHECK_EQUAL( item.sequence.pattern.padding, 1u);
+        BOOST_CHECK_EQUAL( item.sequence.range.first, 1u);
+        BOOST_CHECK_EQUAL( item.sequence.range.last,  2u);
+        BOOST_CHECK_EQUAL( item.sequence.step, 1u);
+    }
+    {
+        const BrowseItem &item = items[1];
+        BOOST_CHECK_EQUAL( item.type, SEQUENCE);
+        BOOST_CHECK_EQUAL( item.path, "");
+        BOOST_CHECK_EQUAL( item.sequence.pattern.prefix, "_2_");
+        BOOST_CHECK_EQUAL( item.sequence.pattern.suffix, "_");
+        BOOST_CHECK_EQUAL( item.sequence.pattern.padding, 1u);
+        BOOST_CHECK_EQUAL( item.sequence.range.first, 1u);
+        BOOST_CHECK_EQUAL( item.sequence.range.last,  2u);
+        BOOST_CHECK_EQUAL( item.sequence.step, 1u);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

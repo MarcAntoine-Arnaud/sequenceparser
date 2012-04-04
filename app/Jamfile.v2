@@ -4,7 +4,6 @@ project :
 			<library>/boost//chrono
 			<os>LINUX:<linkflags>-lrt
 			<link>static
-			<variant>release:<debug-symbols>on
 		;
 
 exe lss : lss.cpp ;
