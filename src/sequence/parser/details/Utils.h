@@ -375,7 +375,7 @@ private:
         }assert(locations.size()==1);
         const LocationData &location = locations[0];
         const Set &set = location.sortedValues;
-        value_type step = 0;
+        size_t step = 0;
         const Ranges ranges = getRangesAndStep(set.begin(), set.end(), step);
         std::transform(ranges.begin(), //
                        ranges.end(), //

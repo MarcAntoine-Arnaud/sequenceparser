@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_SUITE( ParsingSuite )
 
 BOOST_AUTO_TEST_CASE( LocationValueSetGetStepTest )
 {
-    unsigned step;
+    size_t step;
     {
         set<size_t> set;
         std::vector<Range> ranges = getRangesAndStep(set.begin(), set.end(),step);
