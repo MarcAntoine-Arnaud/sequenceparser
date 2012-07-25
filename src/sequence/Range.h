@@ -18,6 +18,9 @@ struct SEQUENCEPARSER_API Range {
     bool contains(unsigned int frame) const { return first <= frame && frame <= last; }
     bool valid() const { return first<=last; }
     unsigned int duration() const;
+    bool operator==(const Range &other) const {
+        return first==other.first && last==other.last;
+    }
 
     /**
      * The result of the following operations

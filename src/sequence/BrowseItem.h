@@ -28,6 +28,9 @@ struct SEQUENCEPARSER_API BrowseItem {
     BrowseItem() : type(UNDEFINED) {}
     BrowseItem(const BrowseItemType type, const boost::filesystem::path &_path, const Sequence &sequence = Sequence()) : type(type), path(_path), sequence(sequence) { }
     std::string extension() const;
+    bool operator==(const BrowseItem &other) const {
+        return type==other.type && path==other.path && sequence==other.sequence;
+    }
 };
 
 /**

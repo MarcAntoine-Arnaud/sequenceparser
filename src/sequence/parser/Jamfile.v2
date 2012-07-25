@@ -1,9 +1,5 @@
-project :	
-			requirements
-			<library>/sequence//sequence
-		:	usage-requirements
-			<library>/sequence//sequence
-		;
-
 explicit sequence_parser ;
-lib sequence_parser : [ glob-tree *.cpp ] ;
+lib sequence_parser : #source
+						[ glob-tree *.cpp ]
+						/sequence//sequence
+					;

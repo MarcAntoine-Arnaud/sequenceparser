@@ -1,14 +1,13 @@
-project :	
-			requirements
-			<library>/boost//filesystem/<link>shared
-            <link>shared:<define>SEQUENCEPARSER_DLL_EXPORTS
-		    <link>shared:<define>SEQUENCEPARSER_DLL
-		    <toolset>gcc:<cxxflags>"-fvisibility=hidden -fvisibility-inlines-hidden"
-		    <toolset>clang:<cxxflags>"-fvisibility=hidden -fvisibility-inlines-hidden"
-		:	usage-requirements
-			<library>/boost//filesystem/<link>shared
-            <link>shared:<define>SEQUENCEPARSER_DLL
-		;
-
 explicit sequence ;
-lib sequence : [ glob *.cpp ] ;
+lib sequence : #source
+				[ glob *.cpp ]
+				/boost//filesystem
+			 : #requirements
+				<link>shared:<define>SEQUENCEPARSER_DLL_EXPORTS
+				<link>shared:<define>SEQUENCEPARSER_DLL
+				<toolset>gcc:<cxxflags>"-fvisibility=hidden -fvisibility-inlines-hidden"
+				<toolset>clang:<cxxflags>"-fvisibility=hidden -fvisibility-inlines-hidden"
+			 : # default build
+			 : # usage requirements
+	            <link>shared:<define>SEQUENCEPARSER_DLL
+			 ;
