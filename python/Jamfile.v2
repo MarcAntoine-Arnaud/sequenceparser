@@ -2,27 +2,29 @@ import python ;
 
 if ! [ python.configured ]
 {
-    ECHO "notice: no Python configured in user-config.jam" ;
-    ECHO "notice: will use default configuration" ;
-    using python ;
+	ECHO "notice: no Python configured in user-config.jam" ;
+	ECHO "notice: will use default configuration" ;
+	using python ;
 }
 
 explicit sequenceparser ;
 python-extension sequenceparser
-		: # sources
-			python_binding.cpp
-			/sequence_parser//sequence_parser
-			/boost/python//boost_python
-		: # requirements
-			<define>BOOST_DISABLE_THREADS
-		: # default build
-		: # usage requirements
-		;
+	: # sources
+		python_binding.cpp
+		/sequence_parser
+		/boost/python//boost_python
+	: # requirements
+		<define>BOOST_DISABLE_THREADS
+	: # default build
+	: # usage requirements
+	;
 
 install convenient_copy 
-        : sequenceparser 
-        : <install-dependencies>on
-          <install-type>SHARED_LIB
-          <install-type>PYTHON_EXTENSION 
-          <location>dist
-        ;
+	:
+		sequenceparser
+	:
+		<install-dependencies>on
+		<install-type>SHARED_LIB
+		<install-type>PYTHON_EXTENSION
+		<location>dist
+	;
