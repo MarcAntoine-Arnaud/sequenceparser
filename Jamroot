@@ -1,4 +1,4 @@
-import os ; 
+import os ;
 import boost ; 
 import path ;
 
@@ -11,7 +11,7 @@ project
 		<os>NT:<define>VC_EXTRALEAN
 		<os>NT:<define>_WIN32_WINNT=0x0501
 	:
-		build-dir bin
+		build-dir $(BUILD)
 	;
 
 use-project /boost
@@ -27,4 +27,23 @@ use-project /sequence
 use-project /sequence_parser
 	:
 		src/sequence/parser
+	;
+
+use-project /sequence_parser_python
+	:
+		python
+	;
+
+
+use-project /app
+	:
+		app
+	;
+
+alias /all
+	:
+		/sequence
+		/sequence_parser
+		/sequence_parser_python
+		/app
 	;
