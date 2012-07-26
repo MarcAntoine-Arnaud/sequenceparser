@@ -1,0 +1,5 @@
+
+path-constant BUILD : ./.build ;
+path-constant DIST  : dist ;
+path-constant DIST_EXE  : $(DIST)/bin ;
+path-constant DIST_LIB  : $(DIST)/lib ;
