@@ -1,5 +1,14 @@
 lib sequence_parser
 	: #source
 		[ glob-tree *.cpp ]
-		/sequence
+		/sequence//sequence
+	;
+
+install sequence_parser_install
+	:
+		sequence_parser
+	:
+		<install-dependencies>on
+		<install-type>SHARED_LIB
+		<location>$(DIST_LIB)
 	;

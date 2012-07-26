@@ -11,3 +11,12 @@ lib sequence
 	: # usage requirements
 		<link>shared:<define>SEQUENCEPARSER_DLL
 	;
+
+install sequence_install
+	:
+		sequence
+	:
+		<install-dependencies>on
+		<install-type>SHARED_LIB
+		<location>$(DIST_LIB)
+	;
