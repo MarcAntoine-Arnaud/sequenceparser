@@ -1,19 +1,24 @@
-project :
-			requirements
-			<library>/sequence_parser//sequence_parser
-			<library>/boost//chrono
-			<os>LINUX:<linkflags>-lrt
-			<link>static
-		;
+project
+	:
+		requirements
+		<library>/sequence_parser
+		<library>/boost//chrono
+		<os>LINUX:<linkflags>-lrt
+		<link>static
+	;
 
-exe lss : lss.cpp ;
+exe lss
+	:
+		lss.cpp
+	;
 
-exe performance_test : performance_test.cpp ;
+exe performance_test
+	:
+		performance_test.cpp
+	;
 
 install dist : lss performance_test
-		:
-		    <install-dependencies>on
-		    <install-type>SHARED_LIB
-		    <install-type>SEARCHED_LIB
-		    <install-type>EXE
-    	;
+	:
+		<install-type>EXE
+		<location>$(DIST_EXE)
+	;
