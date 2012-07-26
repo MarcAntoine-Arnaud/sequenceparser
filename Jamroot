@@ -1,3 +1,23 @@
+##############################################################################
+##                       SequenceParser Project                              #
+##                                                                           #
+##                                                                           #
+##                                                                           #
+## Build:                                                                    #
+##                                                                           #
+## call bjam.sh with:                                                        #
+##      /all                    build all libraries and applications         #
+##      /sequence               build sequence object library                #
+##      /sequence_parser        build sequence parser tool                   #
+##      /sequence_parser_python build sequence parser tool                   #
+##                              into a python binding                        #
+##                                                                           #
+##                                                                           #
+##      default build is in debug, to build in release type:                 #
+##      ./bjam.sh variant=release [target]                                   #
+##                                                                           #
+##############################################################################
+
 import os ;
 import boost ; 
 import path ;
