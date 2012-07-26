@@ -1,5 +1,5 @@
-explicit sequence_parser ;
-lib sequence_parser : #source
-						[ glob-tree *.cpp ]
-						/sequence//sequence
-					;
+lib sequence_parser
+	: #source
+		[ glob-tree *.cpp ]
+		/sequence
+	;

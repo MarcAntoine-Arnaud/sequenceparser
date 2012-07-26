@@ -1,5 +1,8 @@
-project :	requirements
-			<include>.
-		:	usage-requirements
-			<include>.
-		;
+project
+	:
+		requirements
+		<include>.
+	:
+		usage-requirements
+		<include>.
+	;
