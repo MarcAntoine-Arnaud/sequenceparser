@@ -15,17 +15,6 @@ string pathAsString(const BrowseItem& item) {
     return item.path.string();
 }
 
-namespace sequence {
-namespace parser {
-
-bool operator==(const BrowseItem &lhs, const BrowseItem &rhs) {
-    return true;
-}
-
-}  // namespace parser
-}  // namespace sequence
-
-
 BOOST_PYTHON_MODULE(sequenceparser) {
     class_<Range>("Range")
         .def_readonly("first", &Range::first)
