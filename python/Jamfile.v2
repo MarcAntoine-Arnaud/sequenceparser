@@ -26,5 +26,5 @@ install convenient_copy
 		<install-dependencies>on
 		<install-type>SHARED_LIB
 		<install-type>PYTHON_EXTENSION
-		<location>dist
+		<location>$(DIST_LIB)
 	;
