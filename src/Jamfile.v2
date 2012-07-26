@@ -1,8 +1,0 @@
-project
-	:
-		requirements
-		<include>.
-	:
-		usage-requirements
-		<include>.
-	;

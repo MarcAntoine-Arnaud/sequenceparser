@@ -10,6 +10,8 @@ project
 		<os>NT:<define>WIN32_LEAN_AND_MEAN
 		<os>NT:<define>VC_EXTRALEAN
 		<os>NT:<define>_WIN32_WINNT=0x0501
+
+		<include>src
 	:
 		build-dir $(BUILD)
 	;
