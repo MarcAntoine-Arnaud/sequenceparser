@@ -5,7 +5,8 @@
 
 #include <ostream>
 
-namespace sequence {
+namespace sequence
+{
 
 struct Range;
 struct SequencePattern;
@@ -19,5 +20,5 @@ SEQUENCEPARSER_API std::ostream& operator<<(std::ostream &stream, const Sequence
 SEQUENCEPARSER_API std::ostream& operator<<(std::ostream &stream, const BrowseItemType &type);
 SEQUENCEPARSER_API std::ostream& operator<<(std::ostream &stream, const BrowseItem &item);
 
-} /* namespace sequence */
-#endif /* DISPLAYUTILS_H_ */
+}
+#endif

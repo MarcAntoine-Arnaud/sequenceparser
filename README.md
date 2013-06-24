@@ -1,5 +1,5 @@
-lib sequence parser
-===================
+Sequence Parser Library
+=======================
 
 **lib sequence parser** is a lightweight opensource library to find file sequences.
 

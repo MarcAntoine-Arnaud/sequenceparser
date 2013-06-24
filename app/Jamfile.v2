@@ -12,8 +12,8 @@ exe performance_test : performance_test.cpp ;
 
 install dist : lss performance_test
 		:
-		    <install-dependencies>on
-		    <install-type>SHARED_LIB
-		    <install-type>SEARCHED_LIB
-		    <install-type>EXE
-    	;
+			<install-dependencies>on
+			<install-type>SHARED_LIB
+			<install-type>SEARCHED_LIB
+			<install-type>EXE
+		;
