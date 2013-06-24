@@ -29,7 +29,7 @@ namespace details
 {
 
 static inline bool isDigit( std::string::value_type c )
-
+{
 	return c >= '0' && c <= '9';
 }
 
